@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#f5f0eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Yüzde">
+  <meta name="description" content="Akıllı yüzde hesap makinesi - 9 hesaplama türü">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>Yüzde — Akıllı Hesap Makinesi</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{--bg:#f5f0eb;--card:#fff;--t1:#1a1a2e;--t2:#666680;--acc:#2d3436;--accs:#2d343610;--ibg:#f8f6f3;--ib:#00000012;--grn:#00b894}
+    .dark{--bg:#0f0f23;--card:#1a1a2e;--t1:#e8e8e8;--t2:#a0a0b0;--acc:#e94560;--accs:#e9456020;--ibg:#16213e;--ib:#ffffff12;--grn:#0be881}
+    html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--t1);overscroll-behavior:none}
+    #app{height:100%;display:flex;flex-direction:column;overflow:hidden;padding:0 16px}
+
+    .header{display:flex;justify-content:space-between;align-items:center;padding:12px 0 8px;flex-shrink:0}
+    .header h1{font-size:24px;font-weight:700;letter-spacing:-1px}
+    .header p{font-size:12px;color:var(--t2);margin-top:2px}
+    .icon-btn{width:36px;height:36px;border-radius:10px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;background:var(--accs);color:var(--t1);font-size:15px}
+
+    .types{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none;flex-shrink:0}
+    .types::-webkit-scrollbar{display:none}
+    .tbtn{display:flex;align-items:center;gap:5px;padding:8px 14px;border-radius:12px;border:2px solid transparent;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;flex-shrink:0;background:var(--accs);color:var(--t1);font-size:12px;font-weight:600}
+    .tbtn.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+
+    .desc{font-size:13px;font-weight:500;margin:0 0 8px;font-style:italic;color:var(--t2);flex-shrink:0}
+
+    .scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:16px}
+    .card{border-radius:16px;padding:16px;margin-bottom:10px;background:var(--card);box-shadow:0 2px 16px rgba(0,0,0,0.06)}
+    .dark .card{box-shadow:0 2px 16px rgba(0,0,0,0.3)}
+
+    .curr-wrap{position:relative;margin-bottom:12px}
+    .curr-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--ib);cursor:pointer;font-family:'DM Sans',sans-serif;background:var(--ibg);color:var(--t1)}
+    .curr-menu{position:absolute;top:38px;left:0;border-radius:10px;padding:4px;z-index:10;min-width:110px;background:var(--card);box-shadow:0 8px 24px rgba(0,0,0,0.12);display:none}
+    .curr-menu.open{display:block}
+    .dark .curr-menu{box-shadow:0 8px 24px rgba(0,0,0,0.5)}
+    .curr-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;background:transparent;color:var(--t1)}
+    .curr-item.on{background:var(--accs)}
+
+    .field-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;display:block;color:var(--t2)}
+    .field-wrap{display:flex;align-items:center;border-radius:10px;border:1.5px solid var(--ib);overflow:hidden;background:var(--ibg);margin-bottom:10px}
+    .field-fix{padding:0 12px;font-size:15px;font-weight:600;font-family:'JetBrains Mono',monospace;color:var(--t2)}
+    .field-input{flex:1;border:none;outline:none;background:transparent;padding:12px;font-size:16px;font-family:'JetBrains Mono',monospace;font-weight:600;width:100%;color:var(--t1)}
+
+    .quick{display:flex;gap:5px;flex-wrap:wrap}
+    .qbtn{padding:6px 10px;border-radius:7px;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;background:var(--accs);color:var(--t1)}
+    .qbtn.on{background:var(--acc);color:#fff}
+
+    .toggle-row{display:flex;gap:10px;margin-top:4px}
+    .toggle-btn{flex:1;padding:8px;border-radius:8px;border:2px solid var(--ib);background:transparent;color:var(--t1);font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+    .toggle-btn.on{border-color:var(--acc);background:var(--acc);color:#fff}
+
+    .res-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .res-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.5}
+    .copy-btn{background:none;border:none;cursor:pointer;padding:4px;color:var(--t2)}
+    .res-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0}
+    .res-row+.res-row{border-top:1px solid var(--ib)}
+    .res-label{font-size:12px;font-weight:500;color:var(--t2)}
+    .res-value{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--t1)}
+    .res-value.hl{color:var(--grn);font-size:20px;font-weight:700}
+    .formula{margin-top:10px;padding:8px 10px;border-radius:8px;background:var(--accs);color:var(--t2)}
+    .formula .lbl{font-weight:600;font-size:10px;letter-spacing:1px;text-transform:uppercase;opacity:0.6}
+    .formula .expr{font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:3px}
+
+    .empty{text-align:center;padding:20px;opacity:0.35}
+    .empty .ico{font-size:32px;margin-bottom:6px}
+    .clear-btn{display:block;width:100%;padding:12px;border-radius:12px;border:none;cursor:pointer;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;background:var(--accs);color:var(--t1)}
+
+    .overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100;display:none;justify-content:center;align-items:flex-end;background:rgba(0,0,0,0.5)}
+    .overlay.open{display:flex}
+    .panel{width:100%;max-height:70vh;border-radius:20px 20px 0 0;padding:16px 16px 50px;overflow-y:auto;background:var(--card);color:var(--t1)}
+    .panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .panel-header h3{font-size:18px;font-weight:700}
+    .hist-clear{background:none;border:1px solid #d6303133;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;color:#d63031}
+    .dark .hist-clear{color:#ff6b6b;border-color:#ff6b6b33}
+    .hist-close{background:none;border:none;font-size:18px;cursor:pointer;padding:4px 8px;color:var(--t1)}
+    .hist-list{display:flex;flex-direction:column;gap:8px;padding-bottom:20px}
+    .hist-item{padding:10px 12px;border-radius:10px;border:1px solid #0000000a;background:#f8f9fa}
+    .dark .hist-item{background:#16213e;border-color:#ffffff0a}
+    .hist-top{display:flex;justify-content:space-between;align-items:center}
+    .hist-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:0.5px;color:#fff;background:#2d3436}
+    .dark .hist-badge{background:#e94560}
+    .hist-detail{font-size:13px;font-family:'JetBrains Mono',monospace;margin-top:6px}
+    .hist-result{font-size:14px;font-weight:700;margin-top:4px;color:var(--grn)}
+
+    .install-banner{display:none;padding:10px 14px;border-radius:12px;margin-bottom:10px;background:var(--acc);color:#fff;align-items:center;justify-content:space-between;cursor:pointer;flex-shrink:0}
+    .install-banner.show{display:flex}
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div><h1>Yüzde</h1><p>Akıllı hesap makinesi</p></div>
+    <div style="display:flex;gap:8px">
+      <button class="icon-btn" id="histBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></button>
+      <button class="icon-btn" id="themeBtn">🌙</button>
+    </div>
+  </div>
+
+  <div class="install-banner" id="installBanner">
+    <div><div style="font-size:13px;font-weight:600">📲 Uygulamayı Yükle</div><div style="font-size:11px;opacity:0.7">Ana ekrana ekle</div></div>
+    <button id="installBtn" style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer">Yükle</button>
+  </div>
+
+  <div class="types" id="types"></div>
+  <p class="desc" id="desc"></p>
+
+  <div class="scroll">
+    <div class="card" id="inputCard"></div>
+    <div class="card" id="resultCard" style="display:none"></div>
+    <div class="empty" id="emptyState"><div class="ico">🔢</div><p style="font-size:13px">Sonuçları görmek için değerleri girin.</p></div>
+    <button class="clear-btn" id="clearBtn" style="display:none">Temizle</button>
+  </div>
+
+  <div class="overlay" id="histOverlay">
+    <div class="panel">
+      <div class="panel-header"><h3>Geçmiş</h3><div style="display:flex;gap:8px"><button class="hist-clear" id="histClear">Tümünü Sil</button><button class="hist-close" id="histClose">✕</button></div></div>
+      <div class="hist-list" id="histList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const TYPES=[
+  {id:"percentage",label:"Yüzde Hesapla",icon:"%",fields:"default"},
+  {id:"add",label:"Yüzde Ekle",icon:"+",fields:"default"},
+  {id:"subtract",label:"Yüzde Çıkar",icon:"−",fields:"default"},
+  {id:"discount",label:"İndirim",icon:"🏷",fields:"default"},
+  {id:"vat",label:"KDV",icon:"🧾",fields:"default"},
+  {id:"commission",label:"Komisyon",icon:"💼",fields:"default"},
+  {id:"profit",label:"Kâr/Zarar",icon:"📊",fields:"profit"},
+  {id:"interest",label:"Faiz",icon:"🏦",fields:"interest"},
+  {id:"credit",label:"Kredi",icon:"💳",fields:"credit"},
+];
+const CURR=[{code:"TL",sym:"₺"},{code:"USD",sym:"$"},{code:"EUR",sym:"€"}];
+const QUICK=[1,10,18,20,25,50];
+
+let ct="percentage",curr=CURR[0],dark=localStorage.getItem("pc_dark")==="true",
+    hist=JSON.parse(localStorage.getItem("calc_history")||"[]"),lastKey="",currOpen=false;
+let vals={amount:"",percentage:"",buyPrice:"",sellPrice:"",principal:"",rate:"",months:"",compound:false,creditAmt:"",creditRate:"",creditMonths:""};
+
+const $=id=>document.getElementById(id);
+const fmt=n=>(n===undefined||n===null||isNaN(n))?"—":n.toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2});
+
+function init(){
+  if(dark)document.body.classList.add("dark");
+  renderTypes();renderInput();updateDesc();
+  $("themeBtn").textContent=dark?"☀️":"🌙";
+}
+
+function renderTypes(){
+  $("types").innerHTML=TYPES.map(t=>
+    `<button class="tbtn ${t.id===ct?'on':''}" data-id="${t.id}"><span>${t.icon}</span><span>${t.label}</span></button>`
+  ).join("");
+  $("types").querySelectorAll(".tbtn").forEach(b=>b.onclick=()=>{
+    ct=b.dataset.id;Object.keys(vals).forEach(k=>typeof vals[k]==="string"?vals[k]="":null);
+    renderTypes();renderInput();updateDesc();updateResult();
+  });
+}
+
+function renderInput(){
+  const t=TYPES.find(x=>x.id===ct);
+  let h=`<div class="curr-wrap"><button class="curr-btn" id="currBtn"><span style="font-weight:700;font-size:15px">${curr.sym}</span><span style="font-size:12px">${curr.code}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="curr-menu" id="currMenu">${CURR.map(c=>`<button class="curr-item ${c.code===curr.code?'on':''}" data-code="${c.code}"><span style="font-weight:700">${c.sym}</span> ${c.code}</button>`).join("")}</div></div>`;
+
+  if(t.fields==="default"){
+    h+=field("MİKTAR","amount","0,00",curr.sym,"")+field("YÜZDE","percentage","0","","%");
+    h+=`<div class="quick">${QUICK.map(p=>`<button class="qbtn ${vals.percentage===String(p)?'on':''}" data-p="${p}">%${p}</button>`).join("")}</div>`;
+  }else if(t.fields==="profit"){
+    h+=field("ALIŞ FİYATI","buyPrice","0,00",curr.sym,"")+field("SATIŞ FİYATI","sellPrice","0,00",curr.sym,"");
+  }else if(t.fields==="interest"){
+    h+=field("ANAPARA","principal","0,00",curr.sym,"")+field("YILLIK FAİZ ORANI","rate","0","","%")+field("SÜRE (AY)","months","12","","ay");
+    h+=`<div class="toggle-row"><button class="toggle-btn ${!vals.compound?'on':''}" data-c="false">Basit Faiz</button><button class="toggle-btn ${vals.compound?'on':''}" data-c="true">Bileşik Faiz</button></div>`;
+  }else if(t.fields==="credit"){
+    h+=field("KREDİ TUTARI","creditAmt","0,00",curr.sym,"")+field("YILLIK FAİZ ORANI","creditRate","0","","%")+field("VADE (AY)","creditMonths","12","","ay");
+  }
+
+  $("inputCard").innerHTML=h;
+
+  // Events
+  $("currBtn").onclick=()=>{currOpen=!currOpen;$("currMenu").classList.toggle("open",currOpen)};
+  $("currMenu").querySelectorAll(".curr-item").forEach(b=>b.onclick=()=>{curr=CURR.find(c=>c.code===b.dataset.code);currOpen=false;renderInput();updateResult()});
+  document.querySelectorAll("[data-field]").forEach(inp=>{inp.value=vals[inp.dataset.field];inp.oninput=()=>{vals[inp.dataset.field]=inp.value;updateDesc();updateResult()}});
+  document.querySelectorAll(".qbtn").forEach(b=>b.onclick=()=>{vals.percentage=b.dataset.p;renderInput();updateDesc();updateResult()});
+  document.querySelectorAll(".toggle-btn").forEach(b=>b.onclick=()=>{vals.compound=b.dataset.c==="true";renderInput();updateResult()});
+  document.addEventListener("click",e=>{if(!e.target.closest(".curr-wrap")){currOpen=false;const m=$("currMenu");if(m)m.classList.remove("open")}});
+}
+
+function field(label,key,ph,pre,suf){
+  return `<label class="field-label">${label}</label><div class="field-wrap">${pre?`<span class="field-fix" style="padding-left:12px">${pre}</span>`:""}<input class="field-input" type="number" inputmode="decimal" step="any" data-field="${key}" placeholder="${ph}">${suf?`<span class="field-fix" style="padding-right:12px">${suf}</span>`:""}</div>`;
+}
+
+function calc(){
+  const t=TYPES.find(x=>x.id===ct);
+  if(t.fields==="default"){
+    const a=parseFloat(vals.amount),p=parseFloat(vals.percentage);
+    if(isNaN(a)||isNaN(p))return null;
+    const pa=(a*p)/100;
+    const m={percentage:{rows:[{l:"Yüzde Tutarı",v:pa,hl:1}],f:`${a} × ${p} / 100 = `},
+      add:{rows:[{l:"Yüzde Tutarı",v:pa},{l:"Toplam",v:a+pa,hl:1}],f:`${a} + (${a} × ${p} / 100) = `},
+      subtract:{rows:[{l:"Yüzde Tutarı",v:pa},{l:"Toplam",v:a-pa,hl:1}],f:`${a} − (${a} × ${p} / 100) = `},
+      discount:{rows:[{l:"İndirim Tutarı",v:pa},{l:"İndirimli Fiyat",v:a-pa,hl:1}],f:`${a} − (${a} × ${p} / 100) = `},
+      vat:{rows:[{l:"KDV Tutarı",v:pa},{l:"KDV Dahil",v:a+pa,hl:1}],f:`${a} + (${a} × ${p} / 100) = `},
+      commission:{rows:[{l:"Komisyon",v:pa},{l:"Net Kalan",v:a-pa,hl:1}],f:`${a} − (${a} × ${p} / 100) = `}};
+    return m[ct];
+  }
+  if(t.fields==="profit"){
+    const b=parseFloat(vals.buyPrice),s=parseFloat(vals.sellPrice);
+    if(isNaN(b)||isNaN(s)||b===0)return null;
+    const d=s-b,pct=(d/b)*100,ip=d>=0;
+    return{rows:[{l:"Alış Fiyatı",v:b},{l:"Satış Fiyatı",v:s},{l:ip?"Kâr Tutarı":"Zarar Tutarı",v:Math.abs(d),hl:1},{l:ip?"Kâr Oranı":"Zarar Oranı",v:null,disp:`%${fmt(Math.abs(pct))}`}],f:`(${s} − ${b}) / ${b} × 100 = `};
+  }
+  if(t.fields==="interest"){
+    const p=parseFloat(vals.principal),r=parseFloat(vals.rate),m=parseFloat(vals.months);
+    if(isNaN(p)||isNaN(r)||isNaN(m)||m<=0)return null;
+    let total,interest;
+    if(vals.compound){const mr=r/100/12;total=p*Math.pow(1+mr,m);interest=total-p}
+    else{interest=p*(r/100)*(m/12);total=p+interest}
+    return{rows:[{l:"Anapara",v:p},{l:vals.compound?"Bileşik Faiz":"Basit Faiz",v:interest},{l:"Toplam Tutar",v:total,hl:1}],f:vals.compound?`${fmt(p)} × (1 + ${r}/1200)^${m} = `:`${fmt(p)} + (${fmt(p)} × ${r}% × ${m}/12) = `};
+  }
+  if(t.fields==="credit"){
+    const p=parseFloat(vals.creditAmt),r=parseFloat(vals.creditRate),m=parseFloat(vals.creditMonths);
+    if(isNaN(p)||isNaN(r)||isNaN(m)||m<=0||r<=0)return null;
+    const mr=r/100/12,pay=p*(mr*Math.pow(1+mr,m))/(Math.pow(1+mr,m)-1),tp=pay*m;
+    return{rows:[{l:"Aylık Taksit",v:pay,hl:1},{l:"Toplam Faiz",v:tp-p},{l:"Toplam Ödeme",v:tp}],f:`Aylık taksit hesaplama = `};
+  }
+  return null;
+}
+
+function updateDesc(){
+  const a=vals.amount||"___",p=vals.percentage||"___";
+  const d={percentage:`${a}'ın %${p}'i nedir?`,add:`${a}'a %${p} ekle`,subtract:`${a}'dan %${p} çıkar`,discount:`${a} üzerinden %${p} indirim`,vat:`${a} üzerinden %${p} KDV`,commission:`${a} üzerinden %${p} komisyon`,profit:"Alış ve satış fiyatından kâr/zarar hesapla",interest:vals.compound?"Bileşik faiz hesaplama":"Basit faiz hesaplama",credit:"Aylık taksit ve toplam ödeme hesapla"};
+  $("desc").textContent=d[ct];
+}
+
+function updateResult(){
+  const r=calc();
+  const hasInput=Object.keys(vals).some(k=>typeof vals[k]==="string"&&vals[k]!=="");
+  $("clearBtn").style.display=hasInput?"block":"none";
+
+  if(!r){$("resultCard").style.display="none";$("emptyState").style.display="block";return}
+  $("resultCard").style.display="block";$("emptyState").style.display="none";
+
+  const hl=r.rows.find(x=>x.hl);
+  let h=`<div class="res-header"><span class="res-title">SONUÇ</span><button class="copy-btn" id="copyBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button></div>`;
+  r.rows.forEach(row=>{
+    h+=`<div class="res-row"><span class="res-label">${row.l}</span><span class="res-value ${row.hl?'hl':''}">${row.disp||`${curr.sym}${fmt(row.v)}`}</span></div>`;
+  });
+  h+=`<div class="formula"><span class="lbl">Formül</span><div class="expr">${r.f}${hl?fmt(hl.v):""}</div></div>`;
+  $("resultCard").innerHTML=h;
+
+  $("copyBtn").onclick=()=>{
+    let txt=`Hesaplama: ${TYPES.find(x=>x.id===ct).label}\n`;
+    r.rows.forEach(row=>{txt+=`${row.l}: ${row.disp||`${curr.sym}${fmt(row.v)}`}\n`});
+    navigator.clipboard.writeText(txt).then(()=>{$("copyBtn").innerHTML='<span style="font-size:11px;color:var(--grn);font-weight:600">Kopyalandı!</span>';setTimeout(()=>{$("copyBtn").innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>'},1500)});
+  };
+
+  // Save history
+  const t=TYPES.find(x=>x.id===ct);
+  let key="",detail="",mainRes="";
+  if(t.fields==="default"&&vals.amount&&vals.percentage){key=`${ct}-${vals.amount}-${vals.percentage}-${curr.code}`;detail=`${curr.sym}${fmt(parseFloat(vals.amount))} × %${vals.percentage}`;mainRes=hl?`${curr.sym}${fmt(hl.v)}`:""}
+  else if(t.fields==="profit"&&vals.buyPrice&&vals.sellPrice){key=`profit-${vals.buyPrice}-${vals.sellPrice}`;const d=parseFloat(vals.sellPrice)-parseFloat(vals.buyPrice);detail=`Alış: ${curr.sym}${fmt(parseFloat(vals.buyPrice))} → Satış: ${curr.sym}${fmt(parseFloat(vals.sellPrice))}`;mainRes=`${d>=0?"+":"-"}${curr.sym}${fmt(Math.abs(d))}`}
+  else if(t.fields==="interest"&&vals.principal&&vals.rate&&vals.months){key=`interest-${vals.principal}-${vals.rate}-${vals.months}-${vals.compound}`;detail=`${curr.sym}${fmt(parseFloat(vals.principal))} × %${vals.rate} × ${vals.months} ay`;mainRes=hl?`${curr.sym}${fmt(hl.v)}`:""}
+  else if(t.fields==="credit"&&vals.creditAmt&&vals.creditRate&&vals.creditMonths){key=`credit-${vals.creditAmt}-${vals.creditRate}-${vals.creditMonths}`;detail=`${curr.sym}${fmt(parseFloat(vals.creditAmt))} × %${vals.creditRate} × ${vals.creditMonths} ay`;mainRes=hl?`${curr.sym}${fmt(hl.v)}`:""}
+  if(key&&key!==lastKey){clearTimeout(window._ht);window._ht=setTimeout(()=>{lastKey=key;hist.unshift({typeLabel:t.label,detail,mainResult:mainRes,time:new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})});hist=hist.slice(0,50);localStorage.setItem("calc_history",JSON.stringify(hist))},2000)}
+}
+
+function renderHist(){
+  if(hist.length===0){$("histList").innerHTML='<p style="text-align:center;opacity:0.5;margin-top:40px">Henüz hesaplama yapılmadı</p>';$("histClear").style.display="none";return}
+  $("histClear").style.display="inline-block";
+  $("histList").innerHTML=hist.map(h=>`<div class="hist-item"><div class="hist-top"><span class="hist-badge">${h.typeLabel}</span><span style="font-size:11px;opacity:0.4">${h.time}</span></div><div class="hist-detail">${h.detail}</div><div class="hist-result">${h.mainResult}</div></div>`).join("");
+}
+
+// Events
+$("clearBtn").onclick=()=>{Object.keys(vals).forEach(k=>typeof vals[k]==="string"?vals[k]="":null);renderInput();updateDesc();updateResult()};
+$("themeBtn").onclick=()=>{dark=!dark;document.body.classList.toggle("dark",dark);localStorage.setItem("pc_dark",dark);$("themeBtn").textContent=dark?"☀️":"🌙";document.querySelector('meta[name="theme-color"]').content=dark?"#0f0f23":"#f5f0eb"};
+$("histBtn").onclick=()=>{renderHist();$("histOverlay").classList.add("open")};
+$("histClose").onclick=()=>$("histOverlay").classList.remove("open");
+$("histOverlay").onclick=e=>{if(e.target===$("histOverlay"))$("histOverlay").classList.remove("open")};
+$("histClear").onclick=()=>{hist=[];localStorage.setItem("calc_history","[]");lastKey="";renderHist()};
+
+// PWA Install
+let dp;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();dp=e;$("installBanner").classList.add("show")});
+$("installBtn").onclick=async()=>{if(!dp)return;dp.prompt();await dp.userChoice;dp=null;$("installBanner").classList.remove("show")};
+
+// Service Worker
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");
+
+init();
+</script>
+</body>
+</html>
